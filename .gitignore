@@ -1,0 +1,17 @@
+# Flutter/Dart/Pub
+.dart_tool/
+.packages
+.pub/
+build/
+ios/Pods/
+.flutter-plugins
+.flutter-plugins-dependencies
+.macos/Flutter/ephemeral/
+*.iml
+.idea/
+android/.gradle/
+android/app/debug/
+android/app/profile/
+android/app/release/
+*.lock
+ 
