@@ -308,4 +308,21 @@ class UserService {
       params: {"month": month.toString(), "year": year.toString()},
     );
   }
+
+  static Future<dynamic> updateStatusDesignAPI(String id, bool status) async {
+    return await ApiService.put("/api/designs/${id}", {
+      "id": id,
+      "Active": status,
+    });
+  }
+
+  static Future<dynamic> updateStatusFurnitureAPI(
+    String id,
+    bool status,
+  ) async {
+    return await ApiService.put("/api/furnitures/${id}", {
+      "id": id,
+      "Active": status,
+    });
+  }
 }
