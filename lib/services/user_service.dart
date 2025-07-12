@@ -348,21 +348,33 @@ class UserService {
     );
   }
 
-  static Future<dynamic> updateStatusDesignAPI(String id, bool status) async {
-    return await ApiService.put("/api/designs/${id}", {
-      "id": id,
-      "Active": status,
-    });
+
+  static Future<dynamic> updateFurnitureActive({
+    required String furnitureId,
+    required bool isActive,
+  }) async {
+    return await ApiService.putMultipart(
+      "/api/furnitures/$furnitureId",
+      queryParams: {
+        "Active": isActive.toString(),
+      },
+      fields: {},
+      files: {},
+    );
   }
 
-  static Future<dynamic> updateStatusFurnitureAPI(
-    String id,
-    bool status,
-  ) async {
-    return await ApiService.put("/api/furnitures/${id}", {
-      "id": id,
-      "Active": status,
-    });
+  static Future<dynamic> updateDesignActive({
+    required String designId,
+    required bool isActive,
+  }) async {
+    return await ApiService.putMultipart(
+      "/api/designs/$designId",
+      queryParams: {
+        "Active": isActive.toString(),
+      },
+      fields: {},
+      files: {},
+    );
   }
 
 }

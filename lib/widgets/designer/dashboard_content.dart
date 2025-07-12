@@ -334,6 +334,7 @@ class _DashboardContentState extends State<DashboardContent> {
     required bool isPositive,
   }) {
     return Card(
+      color: Colors.white,
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -405,6 +406,7 @@ class _DashboardContentState extends State<DashboardContent> {
 
   Widget _buildRevenueSection() {
     return Card(
+      color: Colors.white,
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -588,6 +590,7 @@ class _DashboardContentState extends State<DashboardContent> {
     return Column(
       children: [
         Card(
+          color: Colors.white,
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -710,6 +713,7 @@ class _DashboardContentState extends State<DashboardContent> {
 
         const SizedBox(height: 24),
         Card(
+          color: Colors.white,
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -822,6 +826,7 @@ class _DashboardContentState extends State<DashboardContent> {
 
   Widget _buildTopReviewedProductsSection() {
     return Card(
+      color: Colors.white,
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(

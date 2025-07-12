@@ -171,32 +171,84 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
+                Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
                     child: _isEditing
                         ? TextField(
-                            controller: _nameController,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: mainTextColor,
-                            ),
-                            decoration: const InputDecoration(
-                              hintText: 'Tên thiết kế',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            ),
-                          )
+                      controller: _nameController,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: mainTextColor,
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'Tên sản phẩm',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                    )
                         : Text(
-                            name,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: mainTextColor,
-                            ),
-                          ),
+                      name,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: mainTextColor,
+                      ),
+                    ),
                   ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: Icon(
+                      widget.product['active'] == true ? Icons.visibility : Icons.visibility_off,
+                      color: widget.product['active'] == true ? Colors.green : Colors.grey,
+                    ),
+                    tooltip: widget.product['active'] == true ? 'Đang hiển thị' : 'Đang ẩn',
+                    onPressed: () async {
+                      final newActive = !(widget.product['active'] ?? false);
+
+                      setState(() {
+                        _isLoading = true;
+                      });
+
+                      try {
+                        await UserService.updateDesignActive(
+                          designId: widget.product['id'].toString(),
+                          isActive: newActive,
+                        );
+
+                        setState(() {
+                          widget.product['active'] = newActive;
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              newActive ? 'Sản phẩm đã hiển thị' : 'Sản phẩm đã bị ẩn',
+                            ),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Lỗi khi cập nhật trạng thái: ${e.toString()}'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      } finally {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
                   const SizedBox(height: 12),
                   Card(
                     shape: RoundedRectangleBorder(

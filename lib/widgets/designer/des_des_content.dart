@@ -60,66 +60,6 @@ class _DesDesContentState extends State<DesDesContent> {
     setState(() => _isLoading = false);
   }
 
-  Future<void> _toggleActiveStatus(String designId, bool currentStatus) async {
-    try {
-      final response = await UserService.updateStatusDesignAPI(
-        designId,
-        !currentStatus,
-      );
-
-      if (response != null) {
-        setState(() {
-          final originalIndex = _originalDesigns.indexWhere(
-            (design) => design['id'] == designId,
-          );
-          if (originalIndex != -1) {
-            _originalDesigns[originalIndex]['active'] = !currentStatus;
-          }
-
-          final filteredIndex = _filteredDesigns.indexWhere(
-            (design) => design['id'] == designId,
-          );
-          if (filteredIndex != -1) {
-            _filteredDesigns[filteredIndex]['active'] = !currentStatus;
-          }
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              !currentStatus ? 'Đã hiển thị sản phẩm' : 'Đã ẩn sản phẩm',
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: kPrimaryDarkGreen,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Có lỗi xảy ra khi cập nhật trạng thái',
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Có lỗi xảy ra khi cập nhật trạng thái',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
 
@@ -345,37 +285,6 @@ class _DesDesContentState extends State<DesDesContent> {
                         ),
                       ),
                     ],
-                  ),
-                ),
-
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => _toggleActiveStatus(designId, isActive),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: isActive ? Colors.green : Colors.red,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          isActive ? Icons.visibility : Icons.visibility_off,
-                          color: Colors.white,
-                          size: 12,
-                        ),
-                      ),
-                    ),
                   ),
                 ),
               ],
