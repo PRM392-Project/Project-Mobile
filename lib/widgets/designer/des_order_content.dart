@@ -1,7 +1,9 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import '../../services/user_service.dart';
+
 import '../../../routes/app_routes.dart';
+import '../../services/user_service.dart';
 import 'OrderCard.dart';
 
 const Color kPrimaryDarkGreen = Color(0xFF3F5139);
@@ -25,7 +27,12 @@ class _DesOrderContentState extends State<DesOrderContent> {
   Timer? _debounce;
 
   String _selectedStatus = 'Tất cả';
-  final List<String> _statusOptions = ['Tất cả', 'Processing', 'Completed', 'Buy'];
+  final List<String> _statusOptions = [
+    'Tất cả',
+    'Processing',
+    'Completed',
+    'Buy',
+  ];
 
   @override
   void initState() {
@@ -42,7 +49,7 @@ class _DesOrderContentState extends State<DesOrderContent> {
   }
 
   Future<void> fetchOrders() async {
-    final response = await UserService.getAllOrdersByDes();
+    final response = await UserService.getAllOrdersByDesAPI();
     if (response != null && response['data'] != null) {
       setState(() {
         _orders = response['data']['items'];
@@ -66,25 +73,39 @@ class _DesOrderContentState extends State<DesOrderContent> {
   void _applyFilterAndSort() {
     String keyword = _searchController.text.trim().toLowerCase();
 
-    _filteredOrders = _orders.where((order) {
-      final code = (order['id'] ?? '').toString().toLowerCase();
-      final status = (order['status'] ?? '').toString();
+    _filteredOrders =
+        _orders.where((order) {
+          final code = (order['id'] ?? '').toString().toLowerCase();
+          final status = (order['status'] ?? '').toString();
 
-      final matchKeyword = code.contains(keyword);
-      final matchStatus = (_selectedStatus == 'Tất cả' || status == _selectedStatus);
-      return matchKeyword && matchStatus;
-    }).toList();
+          final matchKeyword = code.contains(keyword);
+          final matchStatus =
+              (_selectedStatus == 'Tất cả' || status == _selectedStatus);
+          return matchKeyword && matchStatus;
+        }).toList();
 
     _filteredOrders.sort((a, b) {
       dynamic aValue = a[_sortBy];
       dynamic bValue = b[_sortBy];
 
       if (_sortBy == 'date') {
-        aValue = aValue != null ? DateTime.tryParse(aValue) ?? DateTime(1970) : DateTime(1970);
-        bValue = bValue != null ? DateTime.tryParse(bValue) ?? DateTime(1970) : DateTime(1970);
+        aValue =
+            aValue != null
+                ? DateTime.tryParse(aValue) ?? DateTime(1970)
+                : DateTime(1970);
+        bValue =
+            bValue != null
+                ? DateTime.tryParse(bValue) ?? DateTime(1970)
+                : DateTime(1970);
       } else {
-        aValue = (aValue is num) ? aValue : num.tryParse(aValue?.toString() ?? '0') ?? 0;
-        bValue = (bValue is num) ? bValue : num.tryParse(bValue?.toString() ?? '0') ?? 0;
+        aValue =
+            (aValue is num)
+                ? aValue
+                : num.tryParse(aValue?.toString() ?? '0') ?? 0;
+        bValue =
+            (bValue is num)
+                ? bValue
+                : num.tryParse(bValue?.toString() ?? '0') ?? 0;
       }
 
       int compareResult;
@@ -130,7 +151,12 @@ class _DesOrderContentState extends State<DesOrderContent> {
     );
   }
 
-  Widget _buildSortOption(String label, String field, {bool isFirst = false, bool isLast = false}) {
+  Widget _buildSortOption(
+    String label,
+    String field, {
+    bool isFirst = false,
+    bool isLast = false,
+  }) {
     final bool isActive = _sortBy == field;
     IconData icon = Icons.unfold_more;
     if (isActive) {
@@ -144,7 +170,10 @@ class _DesOrderContentState extends State<DesOrderContent> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             border: Border(
-              right: isLast ? BorderSide.none : BorderSide(color: kPrimaryDarkGreen, width: 1),
+              right:
+                  isLast
+                      ? BorderSide.none
+                      : BorderSide(color: kPrimaryDarkGreen, width: 1),
             ),
           ),
           child: Row(
@@ -181,7 +210,10 @@ class _DesOrderContentState extends State<DesOrderContent> {
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.black),
                     onPressed: () {
-                      Navigator.pushReplacementNamed(context, AppRoutes.designerHomepage);
+                      Navigator.pushReplacementNamed(
+                        context,
+                        AppRoutes.designerHomepage,
+                      );
                     },
                   ),
                   Expanded(
@@ -190,7 +222,9 @@ class _DesOrderContentState extends State<DesOrderContent> {
                       child: TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                          ),
                           hintText: 'Tìm kiếm mã đơn hàng...',
                           fillColor: Colors.grey[200],
                           filled: true,
@@ -215,9 +249,14 @@ class _DesOrderContentState extends State<DesOrderContent> {
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: _selectedStatus,
-                        icon: const Icon(Icons.arrow_drop_down, color: kPrimaryDarkGreen),
+                        icon: const Icon(
+                          Icons.arrow_drop_down,
+                          color: kPrimaryDarkGreen,
+                        ),
                         style: const TextStyle(
-                            color: kPrimaryDarkGreen, fontWeight: FontWeight.bold),
+                          color: kPrimaryDarkGreen,
+                          fontWeight: FontWeight.bold,
+                        ),
                         dropdownColor: Colors.white,
                         onChanged: (String? newValue) {
                           setState(() {
@@ -225,12 +264,18 @@ class _DesOrderContentState extends State<DesOrderContent> {
                             _applyFilterAndSort();
                           });
                         },
-                        items: _statusOptions.map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value, overflow: TextOverflow.ellipsis),
-                          );
-                        }).toList(),
+                        items:
+                            _statusOptions.map<DropdownMenuItem<String>>((
+                              String value,
+                            ) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(
+                                  value,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              );
+                            }).toList(),
                       ),
                     ),
                   ),
@@ -239,16 +284,17 @@ class _DesOrderContentState extends State<DesOrderContent> {
             ),
             _buildSortBar(),
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: _filteredOrders.length,
-                itemBuilder: (context, index) {
-                  final order = _filteredOrders[index];
-                  return OrderCard(order: order);
-                },
-              ),
+              child:
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ListView.builder(
+                        padding: const EdgeInsets.all(12),
+                        itemCount: _filteredOrders.length,
+                        itemBuilder: (context, index) {
+                          final order = _filteredOrders[index];
+                          return OrderCard(order: order);
+                        },
+                      ),
             ),
           ],
         ),

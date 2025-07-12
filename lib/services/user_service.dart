@@ -1,9 +1,4 @@
 // lib/services/user_service.dart
-import 'package:flutter/cupertino.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../config.dart';
 import 'api_service.dart';
 
 class UserService {
@@ -82,7 +77,9 @@ class UserService {
     );
   }
 
-  static Future<dynamic> getAllOrdersByDes({
+
+  static Future<dynamic> getAllOrdersByDesAPI({
+
     int pageNumber = -1,
     int pageSize = -1,
   }) async {
@@ -302,6 +299,8 @@ class UserService {
     );
   }
 
+  // dashboard
+
 
   static Future<dynamic> updateProduct({
     required String productId,
@@ -330,5 +329,40 @@ class UserService {
   }
 
 
+  static Future<dynamic> getNewProductsAPI() async {
+    return await ApiService.get("/api/dashboard/new-products");
+  }
+
+  static Future<dynamic> getTopProductsAPI() async {
+    return await ApiService.get("/api/dashboard/top-products");
+  }
+
+  static Future<dynamic> getTopProductsWithReviewsAPI() async {
+    return await ApiService.get("/api/dashboard/top-products-reviews");
+  }
+
+  static Future<dynamic> getDesignerRevenueByDayAPI(int month, int year) async {
+    return await ApiService.get(
+      "/api/dashboard/designer/revenue-by-day",
+      params: {"month": month.toString(), "year": year.toString()},
+    );
+  }
+
+  static Future<dynamic> updateStatusDesignAPI(String id, bool status) async {
+    return await ApiService.put("/api/designs/${id}", {
+      "id": id,
+      "Active": status,
+    });
+  }
+
+  static Future<dynamic> updateStatusFurnitureAPI(
+    String id,
+    bool status,
+  ) async {
+    return await ApiService.put("/api/furnitures/${id}", {
+      "id": id,
+      "Active": status,
+    });
+  }
 
 }
