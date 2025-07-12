@@ -1,9 +1,12 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import 'package:flutter/services.dart';
-import '../../../routes/app_routes.dart';
-import '../../services/user_service.dart';
+import '../../routes/app_routes.dart';
+
 import 'package:intl/intl.dart';
+import '../../services/user_service.dart';
 
 const Color kPrimaryDarkGreen = Color(0xFF3F5139);
 
@@ -38,8 +41,11 @@ class _DesFurContentState extends State<DesFurContent> {
   }
 
   String formatCurrency(double amount) {
-    final formatter =
-    NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0);
+    final formatter = NumberFormat.currency(
+      locale: 'vi_VN',
+      symbol: 'đ',
+      decimalDigits: 0,
+    );
     return formatter.format(amount);
   }
 
@@ -76,9 +82,10 @@ class _DesFurContentState extends State<DesFurContent> {
     _debounce = Timer(const Duration(milliseconds: 400), () {
       String keyword = _searchController.text.trim().toLowerCase();
       setState(() {
-        _filteredDesigns = _originalDesigns.where((item) {
-          return (item['name'] ?? '').toLowerCase().contains(keyword);
-        }).toList();
+        _filteredDesigns =
+            _originalDesigns.where((item) {
+              return (item['name'] ?? '').toLowerCase().contains(keyword);
+            }).toList();
         _applySorting();
       });
     });
@@ -122,12 +129,17 @@ class _DesFurContentState extends State<DesFurContent> {
     );
   }
 
-  Widget _buildSortOption(String label, String field,
-      {bool isFirst = false, bool isLast = false}) {
+  Widget _buildSortOption(
+    String label,
+    String field, {
+    bool isFirst = false,
+    bool isLast = false,
+  }) {
     final isActive = _sortBy == field;
-    final icon = isActive
-        ? (_isAscending ? Icons.arrow_upward : Icons.arrow_downward)
-        : Icons.unfold_more;
+    final icon =
+        isActive
+            ? (_isAscending ? Icons.arrow_upward : Icons.arrow_downward)
+            : Icons.unfold_more;
 
     return Expanded(
       child: InkWell(
@@ -136,9 +148,10 @@ class _DesFurContentState extends State<DesFurContent> {
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             border: Border(
-              right: isLast
-                  ? BorderSide.none
-                  : BorderSide(color: kPrimaryDarkGreen, width: 1),
+              right:
+                  isLast
+                      ? BorderSide.none
+                      : BorderSide(color: kPrimaryDarkGreen, width: 1),
             ),
           ),
           child: Row(
@@ -186,8 +199,19 @@ class _DesFurContentState extends State<DesFurContent> {
         final price = item['price'] ?? 0;
         final rating = item['rating'] ?? 0;
         final imageSource = item['primaryImage']?['imageSource'];
+        final isActive = item['active'] ?? true;
 
         return GestureDetector(
+          onTap: () async {
+            final response = await UserService.getProductById(id);
+            if (response != null && response['data'] != null) {
+              Navigator.pushNamed(
+                context,
+                AppRoutes.designerFurDetail,
+                arguments: response['data'],
+              );
+            }
+          },
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -200,56 +224,81 @@ class _DesFurContentState extends State<DesFurContent> {
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            child: Stack(
               children: [
-                Container(
-                  height: 160,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFBCD4B5),
-                    borderRadius:
-                    BorderRadius.vertical(top: Radius.circular(12)),
-                  ),
-                  child: imageSource != null && imageSource.isNotEmpty
-                      ? ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12)),
-                    child:
-                    Image.network(imageSource, fit: BoxFit.contain),
-                  )
-                      : const Center(
-                    child: Icon(Icons.image_not_supported,
-                        size: 40, color: Colors.white54),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 13)),
-                        const SizedBox(height: 8),
-                        Text('Giá: ${formatCurrency(price)}',
-                            style: const TextStyle(
-                                color: Colors.grey, fontSize: 11)),
-                        const SizedBox(height: 8),
-                        Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      height: 160,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFBCD4B5),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
+                      ),
+                      child:
+                          imageSource != null && imageSource.isNotEmpty
+                              ? ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(12),
+                                ),
+                                child: Image.network(
+                                  imageSource,
+                                  fit: BoxFit.contain,
+                                ),
+                              )
+                              : const Center(
+                                child: Icon(
+                                  Icons.image_not_supported,
+                                  size: 40,
+                                  color: Colors.white54,
+                                ),
+                              ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.star,
-                                color: Colors.orange, size: 12),
-                            const SizedBox(width: 4),
-                            Text('$rating',
-                                style: const TextStyle(fontSize: 11)),
+                            Text(
+                              name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Giá: ${formatCurrency(price)}',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 11,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  color: Colors.orange,
+                                  size: 12,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '$rating',
+                                  style: const TextStyle(fontSize: 11),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -274,7 +323,10 @@ class _DesFurContentState extends State<DesFurContent> {
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.black),
                     onPressed: () {
-                      Navigator.pushReplacementNamed(context, AppRoutes.designerHomepage);
+                      Navigator.pushReplacementNamed(
+                        context,
+                        AppRoutes.designerHomepage,
+                      );
                     },
                   ),
                   Expanded(
@@ -283,7 +335,9 @@ class _DesFurContentState extends State<DesFurContent> {
                       child: TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                          ),
                           hintText: 'Tìm kiếm...',
                           fillColor: Colors.grey[200],
                           filled: true,
@@ -301,9 +355,10 @@ class _DesFurContentState extends State<DesFurContent> {
             ),
             _buildSortBar(),
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _buildProductGrid(),
+              child:
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _buildProductGrid(),
             ),
           ],
         ),
