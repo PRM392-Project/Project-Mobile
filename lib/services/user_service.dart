@@ -77,9 +77,7 @@ class UserService {
     );
   }
 
-
   static Future<dynamic> getAllOrdersByDesAPI({
-
     int pageNumber = -1,
     int pageSize = -1,
   }) async {
@@ -301,18 +299,20 @@ class UserService {
 
   // dashboard
 
-
   static Future<dynamic> updateProduct({
     required String productId,
     required String name,
     required double price,
     required String description,
   }) async {
-    return await ApiService.putWithQuery("/api/furnitures/$productId", queryParams: {
-      "Name": name,
-      "Price": price.toString(),
-      "Description": description,
-    });
+    return await ApiService.putWithQuery(
+      "/api/furnitures/$productId",
+      queryParams: {
+        "Name": name,
+        "Price": price.toString(),
+        "Description": description,
+      },
+    );
   }
 
   static Future<dynamic> updateDesign({
@@ -321,13 +321,15 @@ class UserService {
     required double price,
     required String description,
   }) async {
-    return await ApiService.putWithQuery("/api/designs/$designId", queryParams: {
-      "Name": name,
-      "Price": price.toString(),
-      "Description": description,
-    });
+    return await ApiService.putWithQuery(
+      "/api/designs/$designId",
+      queryParams: {
+        "Name": name,
+        "Price": price.toString(),
+        "Description": description,
+      },
+    );
   }
-
 
   static Future<dynamic> getNewProductsAPI() async {
     return await ApiService.get("/api/dashboard/new-products");
@@ -349,20 +351,20 @@ class UserService {
   }
 
   static Future<dynamic> updateStatusDesignAPI(String id, bool status) async {
-    return await ApiService.put("/api/designs/${id}", {
-      "id": id,
-      "Active": status,
-    });
+    print('Gửi PUT: /api/designs/$id?Action=$status');
+    return await ApiService.putWithQuery(
+      "/api/designs/$id",
+      queryParams: {"Action": status},
+    );
   }
 
   static Future<dynamic> updateStatusFurnitureAPI(
     String id,
     bool status,
   ) async {
-    return await ApiService.put("/api/furnitures/${id}", {
-      "id": id,
-      "Active": status,
-    });
+    return await ApiService.putWithQuery(
+      "/api/furnitures/$id",
+      queryParams: {"Active": status},
+    );
   }
-
 }

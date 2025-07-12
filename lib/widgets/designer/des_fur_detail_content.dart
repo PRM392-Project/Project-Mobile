@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
 import '../../routes/app_routes.dart';
 import '../../services/user_service.dart';
-import 'package:intl/intl.dart';
 
 class DesFurDetailContent extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -17,7 +18,7 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
   List<Map<String, dynamic>> _reviews = [];
   bool _isEditing = false;
   bool _isLoading = false;
-  
+
   late TextEditingController _nameController;
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
@@ -31,8 +32,12 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
 
   void _initializeControllers() {
     _nameController = TextEditingController(text: widget.product['name'] ?? '');
-    _priceController = TextEditingController(text: (widget.product['price'] ?? 0).toString());
-    _descriptionController = TextEditingController(text: widget.product['description'] ?? '');
+    _priceController = TextEditingController(
+      text: (widget.product['price'] ?? 0).toString(),
+    );
+    _descriptionController = TextEditingController(
+      text: widget.product['description'] ?? '',
+    );
   }
 
   @override
@@ -63,9 +68,9 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
 
     final price = double.tryParse(priceText);
     if (price == null || price <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Giá phải là số dương')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Giá phải là số dương')));
       return;
     }
 
@@ -86,7 +91,7 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
         widget.product['name'] = name;
         widget.product['price'] = price;
         widget.product['description'] = description;
-        
+
         setState(() {
           _isEditing = false;
         });
@@ -119,6 +124,70 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
     }
   }
 
+  Future<void> _toggleActiveStatus(
+    String furnitureId,
+    bool currentStatus,
+  ) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await UserService.updateStatusFurnitureAPI(
+        furnitureId,
+        !currentStatus,
+      );
+
+      print('API response: $response');
+
+      if (response != null && response['statusCode'] == 200) {
+        setState(() {
+          widget.product['active'] = !currentStatus;
+          print('Trạng thái mới: ${widget.product['active']}');
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              !currentStatus
+                  ? 'Đã hiển thị sản phẩm thành công'
+                  : 'Đã ẩn sản phẩm thành công',
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: const Color(0xFF3F5139),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response?['message'] ?? 'Không thể cập nhật trạng thái sản phẩm',
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Lỗi khi cập nhật trạng thái: ${e.toString()}',
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   void _cancelEdit() {
     setState(() {
       _isEditing = false;
@@ -129,25 +198,29 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
     });
   }
 
-
-
   String formatCurrency(double amount) {
-    final formatCurrency = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0);
+    final formatCurrency = NumberFormat.currency(
+      locale: 'vi_VN',
+      symbol: 'đ',
+      decimalDigits: 0,
+    );
     return formatCurrency.format(amount);
   }
-
-
 
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
     final name = _isEditing ? _nameController.text : (product['name'] ?? '');
-    final price = _isEditing 
-        ? (double.tryParse(_priceController.text) ?? product['price'] ?? 0)
-        : (product['price'] ?? 0);
+    final price =
+        _isEditing
+            ? (double.tryParse(_priceController.text) ?? product['price'] ?? 0)
+            : (product['price'] ?? 0);
     final rating = product['rating'] ?? 0;
     final imageSource = product['primaryImage']?['imageSource'];
-    final description = _isEditing ? _descriptionController.text : (product['description'] ?? '');
+    final description =
+        _isEditing
+            ? _descriptionController.text
+            : (product['description'] ?? '');
     final designerName = product['designer']?['name'] ?? 'Không rõ';
 
     const mainTextColor = Color(0xFF3F5139);
@@ -177,30 +250,34 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Center(
-                    child: _isEditing
-                        ? TextField(
-                            controller: _nameController,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: mainTextColor,
+                    child:
+                        _isEditing
+                            ? TextField(
+                              controller: _nameController,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: mainTextColor,
+                              ),
+                              decoration: const InputDecoration(
+                                hintText: 'Tên sản phẩm',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                              ),
+                            )
+                            : Text(
+                              name,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: mainTextColor,
+                              ),
                             ),
-                            decoration: const InputDecoration(
-                              hintText: 'Tên sản phẩm',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            ),
-                          )
-                        : Text(
-                            name,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: mainTextColor,
-                            ),
-                          ),
                   ),
                   const SizedBox(height: 12),
                   Card(
@@ -242,50 +319,54 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
                           children: [
                             _isEditing
                                 ? Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Giá:',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black,
-                                        ),
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Giá:',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
                                       ),
-                                      const SizedBox(height: 8),
-                                      TextField(
-                                        controller: _priceController,
-                                        keyboardType: TextInputType.number,
-                                        decoration: const InputDecoration(
-                                          hintText: 'Nhập giá sản phẩm',
-                                          border: OutlineInputBorder(),
-                                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                          suffixText: 'VND',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextField(
+                                      controller: _priceController,
+                                      keyboardType: TextInputType.number,
+                                      decoration: const InputDecoration(
+                                        hintText: 'Nhập giá sản phẩm',
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
                                         ),
+                                        suffixText: 'VND',
                                       ),
-                                    ],
-                                  )
+                                    ),
+                                  ],
+                                )
                                 : Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        'Giá:',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black,
-                                        ),
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Giá:',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
                                       ),
-                                      Text(
-                                        formatCurrency(price),
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black,
-                                        ),
+                                    ),
+                                    Text(
+                                      formatCurrency(price),
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
+                                ),
                             const SizedBox(height: 20),
                             SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
@@ -294,30 +375,49 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
                                   if (product['style']?['name'] != null)
                                     Container(
                                       margin: const EdgeInsets.only(right: 8),
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: Colors.green[100],
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
                                         product['style']['name'],
-                                        style: const TextStyle(fontSize: 13, color: Colors.black87),
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.black87,
+                                        ),
                                       ),
                                     ),
-                                  ...((product['categories'] ?? []) as List<dynamic>).map<Widget>((cat) {
-                                    return Container(
-                                      margin: const EdgeInsets.only(right: 8),
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green[100],
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        cat['name'] ?? '',
-                                        style: const TextStyle(fontSize: 13, color: Colors.black87),
-                                      ),
-                                    );
-                                  }).toList(),
+                                  ...((product['categories'] ?? [])
+                                          as List<dynamic>)
+                                      .map<Widget>((cat) {
+                                        return Container(
+                                          margin: const EdgeInsets.only(
+                                            right: 8,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.green[100],
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            cat['name'] ?? '',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        );
+                                      })
+                                      .toList(),
                                 ],
                               ),
                             ),
@@ -334,33 +434,72 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
                         const SizedBox(height: 6),
                         _isEditing
                             ? TextField(
-                                controller: _descriptionController,
-                                maxLines: 4,
-                                decoration: const InputDecoration(
-                                  hintText: 'Nhập mô tả sản phẩm',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              controller: _descriptionController,
+                              maxLines: 4,
+                              decoration: const InputDecoration(
+                                hintText: 'Nhập mô tả sản phẩm',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
                                 ),
-                              )
-                            : Text(
-                                description.isNotEmpty
-                                    ? description
-                                    : 'Chưa có mô tả.',
-                                style: const TextStyle(fontSize: 16, height: 1.5),
                               ),
+                            )
+                            : Text(
+                              description.isNotEmpty
+                                  ? description
+                                  : 'Chưa có mô tả.',
+                              style: const TextStyle(fontSize: 16, height: 1.5),
+                            ),
                         const SizedBox(height: 20),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Icon(
-                              Icons.star,
-                              size: 18,
-                              color: Colors.orange,
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  size: 18,
+                                  color: Colors.orange,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '$rating / 5.0',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              '$rating / 5.0',
-                              style: const TextStyle(fontSize: 16),
-                            ),
+                            if (!_isEditing)
+                              ElevatedButton(
+                                onPressed:
+                                    _isLoading
+                                        ? null
+                                        : () => _toggleActiveStatus(
+                                          widget.product['id'].toString(),
+                                          widget.product['active'],
+                                        ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      (widget.product['active'] ?? true)
+                                          ? Colors.green
+                                          : Colors.red,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                    horizontal: 12,
+                                  ),
+                                  minimumSize: const Size(0, 36),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: Icon(
+                                  (widget.product['active'] ?? true)
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  size: 18,
+                                ),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 20),
@@ -380,7 +519,9 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF40543C),
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -391,18 +532,25 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
                               Expanded(
                                 child: ElevatedButton.icon(
                                   onPressed: _isLoading ? null : _updateProduct,
-                                  icon: _isLoading 
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        )
-                                      : const Icon(Icons.save),
-                                  label: Text(_isLoading ? 'Đang lưu...' : 'Lưu'),
+                                  icon:
+                                      _isLoading
+                                          ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                          : const Icon(Icons.save),
+                                  label: Text(
+                                    _isLoading ? 'Đang lưu...' : 'Lưu',
+                                  ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF40543C),
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -418,7 +566,9 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.grey,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -456,7 +606,10 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
                 itemBuilder: (context, index) {
                   final review = _reviews[index];
                   return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -481,9 +634,10 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
                                 return Icon(
                                   Icons.star,
                                   size: 16,
-                                  color: i < (review['star'] ?? 0)
-                                      ? Colors.orange
-                                      : Colors.grey[300],
+                                  color:
+                                      i < (review['star'] ?? 0)
+                                          ? Colors.orange
+                                          : Colors.grey[300],
                                 );
                               }),
                             ),
@@ -505,10 +659,7 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
                 child: Center(
                   child: Text(
                     'Chưa có đánh giá nào.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ),
               ),
@@ -518,4 +669,4 @@ class _DesFurDetailContentState extends State<DesFurDetailContent> {
       ),
     );
   }
-} 
+}

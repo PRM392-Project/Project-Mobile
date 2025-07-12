@@ -1,11 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-
-import 'package:flutter/services.dart';
-import '../../routes/app_routes.dart';
-
 import 'package:intl/intl.dart';
+
+import '../../routes/app_routes.dart';
 import '../../services/user_service.dart';
 
 const Color kPrimaryDarkGreen = Color(0xFF3F5139);
@@ -73,76 +71,6 @@ class _DesFurContentState extends State<DesFurContent> {
       }
     } finally {
       setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _toggleActiveStatus(
-    String furnitureId,
-    bool currentStatus,
-  ) async {
-    try {
-      // Gọi API để cập nhật status
-      final response = await UserService.updateStatusFurnitureAPI(
-        furnitureId,
-        !currentStatus,
-      );
-
-      if (response != null) {
-        // Tìm và cập nhật furniture trong danh sách
-        setState(() {
-          // Cập nhật trong _originalDesigns
-          final originalIndex = _originalDesigns.indexWhere(
-            (furniture) => furniture['id'] == furnitureId,
-          );
-          if (originalIndex != -1) {
-            _originalDesigns[originalIndex]['active'] = !currentStatus;
-          }
-
-          // Cập nhật trong _filteredDesigns
-          final filteredIndex = _filteredDesigns.indexWhere(
-            (furniture) => furniture['id'] == furnitureId,
-          );
-          if (filteredIndex != -1) {
-            _filteredDesigns[filteredIndex]['active'] = !currentStatus;
-          }
-        });
-
-        // Hiển thị thông báo thành công
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              !currentStatus ? 'Đã hiển thị sản phẩm' : 'Đã ẩn sản phẩm',
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: kPrimaryDarkGreen,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      } else {
-        // Hiển thị thông báo lỗi
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Có lỗi xảy ra khi cập nhật trạng thái',
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      // Hiển thị thông báo lỗi
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Có lỗi xảy ra khi cập nhật trạng thái',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-        ),
-      );
     }
   }
 
@@ -369,38 +297,6 @@ class _DesFurContentState extends State<DesFurContent> {
                       ),
                     ),
                   ],
-                ),
-
-                // Icon mắt ở góc phải dưới - giống như des_des_content
-                Positioned(
-                  bottom: 6,
-                  right: 6,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => _toggleActiveStatus(id, isActive),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: isActive ? Colors.green : Colors.red,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          isActive ? Icons.visibility : Icons.visibility_off,
-                          color: Colors.white,
-                          size: 10,
-                        ),
-                      ),
-                    ),
-                  ),
                 ),
               ],
             ),

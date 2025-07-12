@@ -141,7 +141,7 @@ class ApiService {
     }
   }
 
-  static Future<dynamic> putWithQuery(String endpoint, {Map<String, String>? queryParams}) async {
+  static Future<dynamic> putWithQuery(String endpoint, {Map<String, dynamic>? queryParams}) async {
     await _setAuthHeader();
     try {
       final response = await _dio.put(endpoint, queryParameters: queryParams);
