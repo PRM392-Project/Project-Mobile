@@ -265,6 +265,32 @@ class UserService {
     );
   }
 
+  static Future<dynamic> updateProduct({
+    required String productId,
+    required String name,
+    required double price,
+    required String description,
+  }) async {
+    return await ApiService.putWithQuery("/api/furnitures/$productId", queryParams: {
+      "Name": name,
+      "Price": price.toString(),
+      "Description": description,
+    });
+  }
+
+  static Future<dynamic> updateDesign({
+    required String designId,
+    required String name,
+    required double price,
+    required String description,
+  }) async {
+    return await ApiService.putWithQuery("/api/designs/$designId", queryParams: {
+      "Name": name,
+      "Price": price.toString(),
+      "Description": description,
+    });
+  }
+
 
 }
 
