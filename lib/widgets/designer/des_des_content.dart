@@ -242,6 +242,16 @@ class _DesDesContentState extends State<DesDesContent> {
         final designId = item['id'] ?? '';
 
         return GestureDetector(
+          onTap: () async {
+            final response = await UserService.getProductById(item['id']);
+            if (response != null && response['data'] != null) {
+              Navigator.pushNamed(
+                context,
+                AppRoutes.designerDesDetail,
+                arguments: response['data'],
+              );
+            }
+          },
           child: Container(
             margin: const EdgeInsets.only(bottom: 16),
             decoration: BoxDecoration(

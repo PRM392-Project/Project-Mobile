@@ -141,6 +141,17 @@ class ApiService {
     }
   }
 
+  static Future<dynamic> putWithQuery(String endpoint, {Map<String, String>? queryParams}) async {
+    await _setAuthHeader();
+    try {
+      final response = await _dio.put(endpoint, queryParameters: queryParams);
+      return response.data;
+    } on DioException catch (e) {
+      _handleError(e);
+      rethrow;
+    }
+  }
+
   static Future<dynamic> delete(String endpoint, {Map<String, String>? params}) async {
     await _setAuthHeader();
     try {

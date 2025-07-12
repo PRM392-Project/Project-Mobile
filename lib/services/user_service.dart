@@ -2,6 +2,15 @@
 import 'api_service.dart';
 
 class UserService {
+  static Future<dynamic> updateOrderStatus(String orderId, int status) async {
+    final response = await ApiService.get("/api/orders/$orderId/$status");
+
+    if (response == null) {
+      throw Exception('Empty response from API');
+    }
+    return response;
+  }
+
   static Future<dynamic> loginDesigner(String email, String password) async {
     return await ApiService.post("/api/auth/designer/login", {
       "email": email,
@@ -68,7 +77,9 @@ class UserService {
     );
   }
 
+
   static Future<dynamic> getAllOrdersByDesAPI({
+
     int pageNumber = -1,
     int pageSize = -1,
   }) async {
@@ -290,6 +301,34 @@ class UserService {
 
   // dashboard
 
+
+  static Future<dynamic> updateProduct({
+    required String productId,
+    required String name,
+    required double price,
+    required String description,
+  }) async {
+    return await ApiService.putWithQuery("/api/furnitures/$productId", queryParams: {
+      "Name": name,
+      "Price": price.toString(),
+      "Description": description,
+    });
+  }
+
+  static Future<dynamic> updateDesign({
+    required String designId,
+    required String name,
+    required double price,
+    required String description,
+  }) async {
+    return await ApiService.putWithQuery("/api/designs/$designId", queryParams: {
+      "Name": name,
+      "Price": price.toString(),
+      "Description": description,
+    });
+  }
+
+
   static Future<dynamic> getNewProductsAPI() async {
     return await ApiService.get("/api/dashboard/new-products");
   }
@@ -325,4 +364,5 @@ class UserService {
       "Active": status,
     });
   }
+
 }

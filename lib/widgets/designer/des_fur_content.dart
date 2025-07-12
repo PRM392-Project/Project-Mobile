@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
-import '../../../routes/app_routes.dart';
+import 'package:flutter/services.dart';
+import '../../routes/app_routes.dart';
+
+import 'package:intl/intl.dart';
 import '../../services/user_service.dart';
 
 const Color kPrimaryDarkGreen = Color(0xFF3F5139);
@@ -270,6 +272,16 @@ class _DesFurContentState extends State<DesFurContent> {
         final isActive = item['active'] ?? true;
 
         return GestureDetector(
+          onTap: () async {
+            final response = await UserService.getProductById(id);
+            if (response != null && response['data'] != null) {
+              Navigator.pushNamed(
+                context,
+                AppRoutes.designerFurDetail,
+                arguments: response['data'],
+              );
+            }
+          },
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
