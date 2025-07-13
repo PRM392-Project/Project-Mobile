@@ -77,9 +77,7 @@ class UserService {
     );
   }
 
-
   static Future<dynamic> getAllOrdersByDesAPI({
-
     int pageNumber = -1,
     int pageSize = -1,
   }) async {
@@ -301,18 +299,20 @@ class UserService {
 
   // dashboard
 
-
   static Future<dynamic> updateProduct({
     required String productId,
     required String name,
     required double price,
     required String description,
   }) async {
-    return await ApiService.putWithQuery("/api/furnitures/$productId", queryParams: {
-      "Name": name,
-      "Price": price.toString(),
-      "Description": description,
-    });
+    return await ApiService.putWithQuery(
+      "/api/furnitures/$productId",
+      queryParams: {
+        "Name": name,
+        "Price": price.toString(),
+        "Description": description,
+      },
+    );
   }
 
   static Future<dynamic> updateDesign({
@@ -321,13 +321,15 @@ class UserService {
     required double price,
     required String description,
   }) async {
-    return await ApiService.putWithQuery("/api/designs/$designId", queryParams: {
-      "Name": name,
-      "Price": price.toString(),
-      "Description": description,
-    });
+    return await ApiService.putWithQuery(
+      "/api/designs/$designId",
+      queryParams: {
+        "Name": name,
+        "Price": price.toString(),
+        "Description": description,
+      },
+    );
   }
-
 
   static Future<dynamic> getNewProductsAPI() async {
     return await ApiService.get("/api/dashboard/new-products");
@@ -348,33 +350,20 @@ class UserService {
     );
   }
 
-
-  static Future<dynamic> updateFurnitureActive({
-    required String furnitureId,
-    required bool isActive,
-  }) async {
-    return await ApiService.putMultipart(
-      "/api/furnitures/$furnitureId",
-      queryParams: {
-        "Active": isActive.toString(),
-      },
-      fields: {},
-      files: {},
+  static Future<dynamic> updateStatusDesignAPI(String id, bool status) async {
+    return await ApiService.putWithQuery(
+      "/api/designs/$id",
+      queryParams: {"Active": status.toString()},
     );
   }
 
-  static Future<dynamic> updateDesignActive({
-    required String designId,
-    required bool isActive,
-  }) async {
-    return await ApiService.putMultipart(
-      "/api/designs/$designId",
-      queryParams: {
-        "Active": isActive.toString(),
-      },
-      fields: {},
-      files: {},
+  static Future<dynamic> updateStatusFurnitureAPI(
+    String id,
+    bool status,
+  ) async {
+    return await ApiService.putWithQuery(
+      "/api/furnitures/$id",
+      queryParams: {"Active": status.toString()},
     );
   }
-
 }
