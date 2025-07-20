@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
 import '../../routes/app_routes.dart';
 import '../../services/user_service.dart';
-import 'package:intl/intl.dart';
 
 class DesDesDetailContent extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -17,7 +18,7 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
   List<Map<String, dynamic>> _reviews = [];
   bool _isEditing = false;
   bool _isLoading = false;
-  
+
   late TextEditingController _nameController;
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
@@ -31,8 +32,12 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
 
   void _initializeControllers() {
     _nameController = TextEditingController(text: widget.product['name'] ?? '');
-    _priceController = TextEditingController(text: (widget.product['price'] ?? 0).toString());
-    _descriptionController = TextEditingController(text: widget.product['description'] ?? '');
+    _priceController = TextEditingController(
+      text: (widget.product['price'] ?? 0).toString(),
+    );
+    _descriptionController = TextEditingController(
+      text: widget.product['description'] ?? '',
+    );
   }
 
   @override
@@ -63,9 +68,9 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
 
     final price = double.tryParse(priceText);
     if (price == null || price <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Giá phải là số dương')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Giá phải là số dương')));
       return;
     }
 
@@ -86,7 +91,7 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
         widget.product['name'] = name;
         widget.product['price'] = price;
         widget.product['description'] = description;
-        
+
         setState(() {
           _isEditing = false;
         });
@@ -119,10 +124,74 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
     }
   }
 
+  Future<void> _toggleActiveStatus(String designId, bool currentStatus) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Gọi API để cập nhật trạng thái
+      final response = await UserService.updateStatusDesignAPI(
+        designId,
+        !currentStatus,
+      );
+
+      print('API response: $response');
+
+      if (response != null && response['statusCode'] == 200) {
+        setState(() {
+          widget.product['active'] = !currentStatus;
+          print('Trạng thái mới: ${widget.product['active']}');
+        });
+
+        // Hiển thị thông báo thành công
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              !currentStatus
+                  ? 'Đã hiển thị thiết kế thành công'
+                  : 'Đã ẩn thiết kế thành công',
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: const Color(0xFF3F5139),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        // Hiển thị thông báo lỗi từ API
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response?['message'] ?? 'Không thể cập nhật trạng thái thiết kế',
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      // Xử lý lỗi ngoại lệ
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Lỗi khi cập nhật trạng thái: ${e.toString()}',
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   void _cancelEdit() {
     setState(() {
       _isEditing = false;
-      // Reset lại giá trị ban đầu
       _nameController.text = widget.product['name'] ?? '';
       _priceController.text = (widget.product['price'] ?? 0).toString();
       _descriptionController.text = widget.product['description'] ?? '';
@@ -130,7 +199,11 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
   }
 
   String formatCurrency(double amount) {
-    final formatCurrency = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0);
+    final formatCurrency = NumberFormat.currency(
+      locale: 'vi_VN',
+      symbol: 'đ',
+      decimalDigits: 0,
+    );
     return formatCurrency.format(amount);
   }
 
@@ -138,12 +211,16 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
   Widget build(BuildContext context) {
     final product = widget.product;
     final name = _isEditing ? _nameController.text : (product['name'] ?? '');
-    final price = _isEditing 
-        ? (double.tryParse(_priceController.text) ?? product['price'] ?? 0)
-        : (product['price'] ?? 0);
+    final price =
+        _isEditing
+            ? (double.tryParse(_priceController.text) ?? product['price'] ?? 0)
+            : (product['price'] ?? 0);
     final rating = product['rating'] ?? 0;
     final imageSource = product['primaryImage']?['imageSource'];
-    final description = _isEditing ? _descriptionController.text : (product['description'] ?? '');
+    final description =
+        _isEditing
+            ? _descriptionController.text
+            : (product['description'] ?? '');
 
     const mainTextColor = Color(0xFF3F5139);
 
@@ -154,10 +231,7 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.pushReplacementNamed(
-              context,
-              AppRoutes.designerDesign,
-            );
+            Navigator.pushReplacementNamed(context, AppRoutes.designerDesign);
           },
         ),
       ),
@@ -171,84 +245,36 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: _isEditing
-                        ? TextField(
-                      controller: _nameController,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: mainTextColor,
-                      ),
-                      decoration: const InputDecoration(
-                        hintText: 'Tên sản phẩm',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                    )
-                        : Text(
-                      name,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: mainTextColor,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: Icon(
-                      widget.product['active'] == true ? Icons.visibility : Icons.visibility_off,
-                      color: widget.product['active'] == true ? Colors.green : Colors.grey,
-                    ),
-                    tooltip: widget.product['active'] == true ? 'Đang hiển thị' : 'Đang ẩn',
-                    onPressed: () async {
-                      final newActive = !(widget.product['active'] ?? false);
-
-                      setState(() {
-                        _isLoading = true;
-                      });
-
-                      try {
-                        await UserService.updateDesignActive(
-                          designId: widget.product['id'].toString(),
-                          isActive: newActive,
-                        );
-
-                        setState(() {
-                          widget.product['active'] = newActive;
-                        });
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              newActive ? 'Sản phẩm đã hiển thị' : 'Sản phẩm đã bị ẩn',
+                  Center(
+                    child:
+                        _isEditing
+                            ? TextField(
+                              controller: _nameController,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: mainTextColor,
+                              ),
+                              decoration: const InputDecoration(
+                                hintText: 'Tên thiết kế',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                              ),
+                            )
+                            : Text(
+                              name,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: mainTextColor,
+                              ),
                             ),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Lỗi khi cập nhật trạng thái: ${e.toString()}'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      } finally {
-                        setState(() {
-                          _isLoading = false;
-                        });
-                      }
-                    },
                   ),
-                ],
-              ),
                   const SizedBox(height: 12),
                   Card(
                     shape: RoundedRectangleBorder(
@@ -289,50 +315,54 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
                           children: [
                             _isEditing
                                 ? Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Giá:',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black,
-                                        ),
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Giá:',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
                                       ),
-                                      const SizedBox(height: 8),
-                                      TextField(
-                                        controller: _priceController,
-                                        keyboardType: TextInputType.number,
-                                        decoration: const InputDecoration(
-                                          hintText: 'Nhập giá thiết kế',
-                                          border: OutlineInputBorder(),
-                                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                          suffixText: 'VND',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextField(
+                                      controller: _priceController,
+                                      keyboardType: TextInputType.number,
+                                      decoration: const InputDecoration(
+                                        hintText: 'Nhập giá thiết kế',
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
                                         ),
+                                        suffixText: 'VND',
                                       ),
-                                    ],
-                                  )
+                                    ),
+                                  ],
+                                )
                                 : Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        'Giá:',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black,
-                                        ),
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Giá:',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
                                       ),
-                                      Text(
-                                        formatCurrency(price),
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black,
-                                        ),
+                                    ),
+                                    Text(
+                                      formatCurrency(price),
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
+                                ),
                             const SizedBox(height: 20),
                           ],
                         ),
@@ -346,33 +376,72 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
                         const SizedBox(height: 6),
                         _isEditing
                             ? TextField(
-                                controller: _descriptionController,
-                                maxLines: 4,
-                                decoration: const InputDecoration(
-                                  hintText: 'Nhập mô tả thiết kế',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              controller: _descriptionController,
+                              maxLines: 4,
+                              decoration: const InputDecoration(
+                                hintText: 'Nhập mô tả thiết kế',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
                                 ),
-                              )
-                            : Text(
-                                description.isNotEmpty
-                                    ? description
-                                    : 'Chưa có mô tả.',
-                                style: const TextStyle(fontSize: 16, height: 1.5),
                               ),
+                            )
+                            : Text(
+                              description.isNotEmpty
+                                  ? description
+                                  : 'Chưa có mô tả.',
+                              style: const TextStyle(fontSize: 16, height: 1.5),
+                            ),
                         const SizedBox(height: 20),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Icon(
-                              Icons.star,
-                              size: 18,
-                              color: Colors.orange,
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  size: 18,
+                                  color: Colors.orange,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '$rating / 5.0',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              '$rating / 5.0',
-                              style: const TextStyle(fontSize: 16),
-                            ),
+                            if (!_isEditing)
+                              ElevatedButton(
+                                onPressed:
+                                    _isLoading
+                                        ? null
+                                        : () => _toggleActiveStatus(
+                                          widget.product['id'].toString(),
+                                          widget.product['active'],
+                                        ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      (widget.product['active'] ?? true)
+                                          ? Colors.green
+                                          : Colors.red,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                    horizontal: 12,
+                                  ),
+                                  minimumSize: const Size(0, 36),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: Icon(
+                                  (widget.product['active'] ?? true)
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  size: 18,
+                                ),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 20),
@@ -392,7 +461,9 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF40543C),
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -403,18 +474,25 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
                               Expanded(
                                 child: ElevatedButton.icon(
                                   onPressed: _isLoading ? null : _updateDesign,
-                                  icon: _isLoading 
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        )
-                                      : const Icon(Icons.save),
-                                  label: Text(_isLoading ? 'Đang lưu...' : 'Lưu'),
+                                  icon:
+                                      _isLoading
+                                          ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                          : const Icon(Icons.save),
+                                  label: Text(
+                                    _isLoading ? 'Đang lưu...' : 'Lưu',
+                                  ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF40543C),
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -430,7 +508,9 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.grey,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -468,7 +548,10 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
                 itemBuilder: (context, index) {
                   final review = _reviews[index];
                   return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -493,9 +576,10 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
                                 return Icon(
                                   Icons.star,
                                   size: 16,
-                                  color: i < (review['star'] ?? 0)
-                                      ? Colors.orange
-                                      : Colors.grey[300],
+                                  color:
+                                      i < (review['star'] ?? 0)
+                                          ? Colors.orange
+                                          : Colors.grey[300],
                                 );
                               }),
                             ),
@@ -517,10 +601,7 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
                 child: Center(
                   child: Text(
                     'Chưa có đánh giá nào.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ),
               ),
@@ -530,4 +611,4 @@ class _DesDesDetailContentState extends State<DesDesDetailContent> {
       ),
     );
   }
-} 
+}
