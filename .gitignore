@@ -14,4 +14,33 @@ android/app/debug/
 android/app/profile/
 android/app/release/
 *.lock
- 
+
+# Flutter/Dart/Pub
+.dart_tool/
+.packages
+.pub/
+build/
+ios/Pods/
+.flutter-plugins
+.flutter-plugins-dependencies
+.macos/Flutter/ephemeral/
+*.iml
+.idea/
+*.lock
+
+# Android
+android/.gradle/
+android/app/debug/
+android/app/profile/
+android/app/release/
+
+# Android App Bundles
+*.aab
+
+# Android keystore / signing
+*.jks
+*.keystore
+key.properties
+**/key.properties
+**/signing.gradle
+
